@@ -24,7 +24,7 @@ class NormalGrid {
     // Navier Stokes equations
     updteConvection();
     updateDiffusion();
-    // updatePressure();
+    updatePressure();
     // updateLossVelocities();
   }
 
@@ -53,10 +53,10 @@ class NormalGrid {
         // Dynamic and kinematic viscosity [nu]
         // surroundRatio = nu * dt / (h * h)
         float surroundRatio = 0.2; // 0 - 0.25
-        float centerRatio = 1.0 - 4 * surroundRatio;
+        float centerRatio = 1 - 4 * surroundRatio;
         // or you can define this way
         // float centerRatio = 0.2; // 0 - 1
-        // float surroundRatio = (1.0 - antiDiffusionRatio) / 4;
+        // float surroundRatio = (1 - centerRatio) / 4.0;
         PVector leftVelocity = getPrevVelocity(i - 1, j);
         PVector rightVelocity = getPrevVelocity(i + 1, j);
         PVector topVelocity = getPrevVelocity(i, j - 1);
@@ -77,10 +77,29 @@ class NormalGrid {
   }
 
   private void updatePressure() {
-    // TODO: Check algorithm
     // Incompressible
     for (int i = 0; i < numColumn; i++) {
       for (int j = 0; j < numRow; j++) {
+        // h = dx = dy = rectSize
+        // Density [rho]
+        // coef = h * rho / dt
+        float coef = 1.0;
+        // PVector centerVelocity = getPrevVelocity(i, j);
+        PVector leftVelocity = getPrevVelocity(i - 1, j);
+        PVector rightVelocity = getPrevVelocity(i + 1, j);
+        PVector topVelocity = getPrevVelocity(i, j - 1);
+        PVector bottomVelocity = getPrevVelocity(i, j + 1);
+        // pressures[getIndex(i, j)] = coed *
+        //   ((leftVelocity.x - centerVelocity.x) / 2 - (centerVelocity.x - rightVelocity.x) / 2 +
+        //   (topVelocity.y - centerVelocity.x) / 2 - (centerVelocity - bottomVelocity.y) / 2);
+        pressures[getIndex(i, j)] = coef *
+          (leftVelocity.x - rightVelocity.x + topVelocity.y - bottomVelocity.y);
+      }
+    }
+    for (int i = 0; i < numColumn; i++) {
+      for (int j = 0; j < numRow; j++) {
+        // h = dx = dy = rectSize
+        // coef = dt / (rho * h);
         float coef = 0.2;
         float leftPressure = getPressure(i - 1, j);
         float rightPressure = getPressure(i + 1, j);
@@ -96,17 +115,6 @@ class NormalGrid {
     for (int i = 0; i < numColumn; i++) {
       for (int j = 0; j < numRow; j++) {
         prevVelocities[getIndex(i, j)] = velocities[getIndex(i, j)].copy();
-      }
-    }
-    for (int i = 0; i < numColumn; i++) {
-      for (int j = 0; j < numRow; j++) {
-        PVector leftVelocity = getPrevVelocity(i - 1, j);
-        PVector rightVelocity = getPrevVelocity(i + 1, j);
-        PVector topVelocity = getPrevVelocity(i, j - 1);
-        PVector bottomVelocity = getPrevVelocity(i, j + 1);
-        pressures[getIndex(i, j)] +=
-          leftVelocity.x - rightVelocity.x +
-          topVelocity.y - bottomVelocity.y;
       }
     }
   }
@@ -189,8 +197,8 @@ class NormalGrid {
         line(
           position.x,
           position.y,
-          position.x + velocity.x * 4,
-          position.y + velocity.y * 4
+          position.x + velocity.x * 5,
+          position.y + velocity.y * 5
         );
       }
     }
