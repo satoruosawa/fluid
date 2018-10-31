@@ -25,7 +25,6 @@ class NormalGrid {
     updteConvection();
     updateDiffusion();
     updatePressure();
-    // updateLossVelocities();
   }
 
   private void updteConvection() {
@@ -115,15 +114,6 @@ class NormalGrid {
     for (int i = 0; i < numColumn; i++) {
       for (int j = 0; j < numRow; j++) {
         prevVelocities[getIndex(i, j)] = velocities[getIndex(i, j)].copy();
-      }
-    }
-  }
-
-  private void updateLossVelocities() {
-    for (int i = 0; i < numColumn; i++) {
-      for (int j = 0; j < numRow; j++) {
-        float coef = 0.9;
-        getPrevVelocity(i, j).mult(coef);
       }
     }
   }
