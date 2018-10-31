@@ -61,8 +61,8 @@ class Grid {
   }
 
   public void update() {
-    // updteAdvection();
-    updateSimplicityDiffusion();
+    updteAdvection();
+    updateDiffusion();
     // updateSimpleIncompressible();
     // updateLossVelocities();
   }
@@ -84,14 +84,14 @@ class Grid {
     }
   }
 
-  private void updateSimplicityDiffusion() {
-    // TODO: Check algorithm
+  private void updateDiffusion() {
     for (int i = 0; i < numColumn; i++) {
       for (int j = 0; j < numRow; j++) {
+        // Explicit way
         // h = dx = dy = rectSize
         // Dynamic and kinematic viscosity [nu]
         // surroundRatio = nu * dt / (h * h)
-        float surroundRatio = 0.2f; // 0 - 0.25
+        float surroundRatio = 0.25f; // 0 - 0.25
         float centerRatio = 1.0f - 4 * surroundRatio;
         // or you can define this way
         // float centerRatio = 0.2; // 0 - 1
@@ -103,10 +103,9 @@ class Grid {
         PVector total = PVector
           .add(leftVelocity, rightVelocity)
           .add(topVelocity).add(bottomVelocity);
-        total.mult(surroundRatio);
         velocities[getIndex(i, j)] = PVector
           .mult(prevVelocities[getIndex(i, j)], centerRatio)
-          .add(total);
+          .add(total.mult(surroundRatio));
       }
     }
     for (int i = 0; i < numColumn; i++) {
