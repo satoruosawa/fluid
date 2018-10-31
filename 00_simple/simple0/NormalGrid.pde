@@ -1,4 +1,4 @@
-class Grid {
+class NormalGrid {
   private int gridSize;
   private int numColumn;
   private int numRow;
@@ -6,7 +6,7 @@ class Grid {
   private PVector[] prevVelocities;
   private PVector[] velocities;
 
-  public Grid(int gridSize, int numColumn, int numRow) {
+  public NormalGrid(int gridSize, int numColumn, int numRow) {
     this.gridSize = gridSize;
     this.numColumn = numColumn;
     this.numRow = numRow;
@@ -21,13 +21,14 @@ class Grid {
   }
 
   public void update() {
-    updteAdvection();
+    // Navier Stokes equations
+    updteConvection();
     updateDiffusion();
-    // updateSimpleIncompressible();
+    // updatePressure();
     // updateLossVelocities();
   }
 
-  private void updteAdvection() {
+  private void updteConvection() {
     for (int i = 0; i < numColumn; i++) {
       for (int j = 0; j < numRow; j++) {
         // semi-Lagrangian
@@ -51,7 +52,7 @@ class Grid {
         // h = dx = dy = rectSize
         // Dynamic and kinematic viscosity [nu]
         // surroundRatio = nu * dt / (h * h)
-        float surroundRatio = 0.25; // 0 - 0.25
+        float surroundRatio = 0.2; // 0 - 0.25
         float centerRatio = 1.0 - 4 * surroundRatio;
         // or you can define this way
         // float centerRatio = 0.2; // 0 - 1
@@ -75,12 +76,12 @@ class Grid {
     }
   }
 
-  private void updateSimpleIncompressible() {
+  private void updatePressure() {
     // TODO: Check algorithm
+    // Incompressible
     for (int i = 0; i < numColumn; i++) {
       for (int j = 0; j < numRow; j++) {
         float coef = 0.2;
-        float centerPressure = getPressure(i, j);
         float leftPressure = getPressure(i - 1, j);
         float rightPressure = getPressure(i + 1, j);
         float topPressure = getPressure(i, j - 1);

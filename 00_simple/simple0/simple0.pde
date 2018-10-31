@@ -1,9 +1,9 @@
-Grid grid;
+NormalGrid grid;
 int rectSize = 10;
 
 void setup() {
   size(1080, 1080);
-  grid = new Grid(rectSize, width / rectSize, height / rectSize);
+  grid = new NormalGrid(rectSize, width / rectSize, height / rectSize);
 }
 
 void update() {
