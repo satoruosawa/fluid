@@ -76,25 +76,8 @@ class NormalGrid {
   }
 
   private void updatePressure() {
+    // TODO: Check algorithm
     // Incompressible
-    for (int i = 0; i < numColumn; i++) {
-      for (int j = 0; j < numRow; j++) {
-        // h = dx = dy = rectSize
-        // Density [rho]
-        // coef = h * rho / dt
-        float coef = 1.0;
-        // PVector centerVelocity = getPrevVelocity(i, j);
-        PVector leftVelocity = getPrevVelocity(i - 1, j);
-        PVector rightVelocity = getPrevVelocity(i + 1, j);
-        PVector topVelocity = getPrevVelocity(i, j - 1);
-        PVector bottomVelocity = getPrevVelocity(i, j + 1);
-        // pressures[getIndex(i, j)] = coed *
-        //   ((leftVelocity.x - centerVelocity.x) / 2 - (centerVelocity.x - rightVelocity.x) / 2 +
-        //   (topVelocity.y - centerVelocity.x) / 2 - (centerVelocity - bottomVelocity.y) / 2);
-        pressures[getIndex(i, j)] = coef *
-          (leftVelocity.x - rightVelocity.x + topVelocity.y - bottomVelocity.y);
-      }
-    }
     for (int i = 0; i < numColumn; i++) {
       for (int j = 0; j < numRow; j++) {
         // h = dx = dy = rectSize
@@ -114,6 +97,24 @@ class NormalGrid {
     for (int i = 0; i < numColumn; i++) {
       for (int j = 0; j < numRow; j++) {
         prevVelocities[getIndex(i, j)] = velocities[getIndex(i, j)].copy();
+      }
+    }
+    for (int i = 0; i < numColumn; i++) {
+      for (int j = 0; j < numRow; j++) {
+        // h = dx = dy = rectSize
+        // Density [rho]
+        // coef = h * rho / dt
+        float coef = 0.5;
+        // PVector centerVelocity = getPrevVelocity(i, j);
+        PVector leftVelocity = getPrevVelocity(i - 1, j);
+        PVector rightVelocity = getPrevVelocity(i + 1, j);
+        PVector topVelocity = getPrevVelocity(i, j - 1);
+        PVector bottomVelocity = getPrevVelocity(i, j + 1);
+        // pressures[getIndex(i, j)] = coed *
+        //   ((leftVelocity.x - centerVelocity.x) / 2 - (centerVelocity.x - rightVelocity.x) / 2 +
+        //   (topVelocity.y - centerVelocity.x) / 2 - (centerVelocity - bottomVelocity.y) / 2);
+        pressures[getIndex(i, j)] += coef *
+          (leftVelocity.x - rightVelocity.x + topVelocity.y - bottomVelocity.y);
       }
     }
   }
