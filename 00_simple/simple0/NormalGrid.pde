@@ -36,7 +36,7 @@ class NormalGrid {
     for (int i = 0; i < numGridX; i++) {
       for (int j = 0; j < numGridY; j++) {
         // semi-Lagrangian
-        PVector position = new PVector(i, j).mult(gridSize);
+        PVector position = new PVector(i, j).mult(gridSize); // skip centering
         PVector backTracedPosition = position.sub(prevVelocities[i][j]);
         PVector backTracedGridIndex = PVector.div(backTracedPosition, gridSize);
         velocities[i][j] = calculateLerpPrevVelocity(
