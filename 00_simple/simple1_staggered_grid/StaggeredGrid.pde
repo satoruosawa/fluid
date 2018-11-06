@@ -52,45 +52,62 @@ class StaggeredGrid {
     for (int i = 0; i < numGridX; i++) {
       for (int j = 0; j < numGridY; j++) {
         // semi-Lagrangian
-        generatePrevVelocity(i, j);
-        // PVector position = new PVector(i, j).mult(gridSize).add(0.5, 0.5);
-        // PVector backTracedPosition = position.sub(prevVelocities[i][j]);
-        // PVector backTracedGridIndex = PVector.div(backTracedPosition, gridSize);
-        // velocities[i][j] = calculateLerpPrevVelocity(
-        //   backTracedGridIndex.x, backTracedGridIndex.y);
+        PVector backTracedGridIndex = calculateBackTracedGridIndex(i, j);
+        velocitiesX[i][j] = calculateLerpPrevVelocityX(
+          backTracedGridIndex.x, backTracedGridIndex.y - 0.5);
+        velocitiesY[i][j] = calculateLerpPrevVelocityY(
+          backTracedGridIndex.x - 0.5, backTracedGridIndex.y);
       }
     }
     copyVelocitiesToPrevVelocities();
   }
 
-  private PVector generatePrevVelocity(int gridIndexX, int gridIndexY) {
-    // PVector position = new PVector(gridIndexX, gridIndexY)
-    //   .mult(gridSize).add(0.5, 0.5);
-    // float prevVelocityX = (prevVelocitiesX[gridIndexX][gridIndexY] +
-    //   prevVelocitiesX[gridIndexX][gridIndexY]) / 2.0;
-    // float prevVelocityY;
-    // PVector backTracedPosition = position.sub(prevVelocities[i][j]);
-    return new PVector();
+  private PVector calculateBackTracedGridIndex(int gridIndexX, int gridIndexY) {
+    PVector position = generatePosition(gridIndexX, gridIndexY);
+    float prevVelocityX = (prevVelocitiesX[gridIndexX][gridIndexY] +
+      prevVelocitiesX[gridIndexX + 1][gridIndexY]) / 2.0;
+    float prevVelocityY = (prevVelocitiesY[gridIndexX][gridIndexY] +
+      prevVelocitiesY[gridIndexX][gridIndexY + 1]) / 2.0;
+    PVector backTracedPosition = position.sub(prevVelocityX, prevVelocityY);
+    return PVector.div(backTracedPosition, gridSize);
   }
 
-  // private PVector calculateLerpPrevVelocity(
-  //   float gridIndexX, float gridIndexY) {
-  //   int left = floor(gridIndexX);
-  //   int top = floor(gridIndexY);
-  //   int right = left + 1;
-  //   int bottom = top + 1;
-  //   PVector topLerp = PVector.lerp(
-  //     getPrevVelocity(left, top),
-  //     getPrevVelocity(right, top),
-  //     gridIndexX - left
-  //   );
-  //   PVector bottomLerp = PVector.lerp(
-  //     getPrevVelocity(left, bottom),
-  //     getPrevVelocity(right, bottom),
-  //     gridIndexX - left
-  //   );
-  //   return PVector.lerp(topLerp, bottomLerp, gridIndexY - top);
-  // }
+  private float calculateLerpPrevVelocityX(float gridIndexX, float gridIndexY) {
+    // BUG:
+    int left = floor(gridIndexX);
+    int top = floor(gridIndexY);
+    int right = left + 1;
+    int bottom = top + 1;
+    float topLerp = lerp(
+      getPrevVelocityX(left, top),
+      getPrevVelocityX(right, top),
+      gridIndexX - left
+    );
+    float bottomLerp = lerp(
+      getPrevVelocityX(left, bottom),
+      getPrevVelocityX(right, bottom),
+      gridIndexX - left
+    );
+    return lerp(topLerp, bottomLerp, gridIndexY - top);
+  }
+
+  private float calculateLerpPrevVelocityY(float gridIndexX, float gridIndexY) {
+    int left = floor(gridIndexX);
+    int top = floor(gridIndexY);
+    int right = left + 1;
+    int bottom = top + 1;
+    float topLerp = lerp(
+      getPrevVelocityY(left, top),
+      getPrevVelocityY(right, top),
+      gridIndexX - left
+    );
+    float bottomLerp = lerp(
+      getPrevVelocityY(left, bottom),
+      getPrevVelocityY(right, bottom),
+      gridIndexX - left
+    );
+    return lerp(topLerp, bottomLerp, gridIndexY - top);
+  }
   //
   // private void updateDiffusion() {
   //   for (int j = 0; j < numGridY; j++) {
@@ -189,18 +206,22 @@ class StaggeredGrid {
       }
     }
   }
-  //
-  // private PVector generateVelocityPosition(int gridIndexX, int gridIndexY) {
-  //   return (new PVector(gridIndexX, gridIndexY).add(0.5, 0.5)).mult(gridSize);
-  // }
-  //
-  // private PVector getPrevVelocity(int gridIndexX, int gridIndexY) {
-  //   if (gridIndexX < 0 || gridIndexX >= numGridX ||
-  //     gridIndexY < 0 || gridIndexY >= numGridY) {
-  //     return new PVector(0, 0);
-  //   }
-  //   return prevVelocities[gridIndexX][gridIndexY];
-  // }
+
+  private float getPrevVelocityX(int gridIndexX, int gridIndexY) {
+    if (gridIndexX < 0 || gridIndexX >= numGridX + 1 ||
+      gridIndexY < 0 || gridIndexY >= numGridY) {
+      return 0.0;
+    }
+    return prevVelocitiesX[gridIndexX][gridIndexY];
+  }
+
+  private float getPrevVelocityY(int gridIndexX, int gridIndexY) {
+    if (gridIndexX < 0 || gridIndexX >= numGridX ||
+      gridIndexY < 0 || gridIndexY >= numGridY + 1) {
+      return 0.0;
+    }
+    return prevVelocitiesY[gridIndexX][gridIndexY];
+  }
   //
   // private float getPrevPressure(int gridIndexX, int gridIndexY) {
   //   if (gridIndexX < 0 || gridIndexX >= numGridX ||
@@ -211,44 +232,65 @@ class StaggeredGrid {
   // }
   //
   public void addLerpVelocity(PVector position, PVector velocity) {
-    // TODO: Change to Staggered grid
-    // PVector velocityRef = PVector.div(position, gridSize).sub(0.5, 0.5);
-    // int left = floor(velocityRef.x);
-    // int top = floor(velocityRef.y);
-    // float alpha = (velocityRef.x) - left;
-    // float beta = (velocityRef.y) - top;
-    // addVelocity(left, top, PVector.mult(velocity, (1 - alpha) * (1 - beta)));
-    // addVelocity(left + 1, top, PVector.mult(velocity, alpha * (1 - beta)));
-    // addVelocity(left, top + 1, PVector.mult(velocity, (1 - alpha) * beta));
-    // addVelocity(left + 1, top + 1, PVector.mult(velocity, alpha * beta));
+    // For X
+    PVector xIndexF = PVector.div(position, gridSize).sub(0.0, 0.5);
+    int xIndexX = floor(xIndexF.x);
+    int xIndexY = floor(xIndexF.y);
+    PVector coefX = new PVector(xIndexF.x - xIndexX, xIndexF.y - xIndexY);
+    addVelocityX(xIndexX, xIndexY, velocity.x * (1 - coefX.x) * (1 - coefX.y));
+    addVelocityX(xIndexX + 1, xIndexY, velocity.x * coefX.x * (1 - coefX.y));
+    addVelocityX(xIndexX, xIndexY + 1, velocity.x * (1 - coefX.x) * coefX.y);
+    addVelocityX(xIndexX + 1, xIndexY + 1, velocity.x * coefX.x * coefX.y);
+    // For Y
+    PVector yIndexF = PVector.div(position, gridSize).sub(0.5, 0.0);
+    int yIndexX = floor(yIndexF.x);
+    int yIndexY = floor(yIndexF.y);
+    PVector coefY = new PVector(yIndexF.x - yIndexX, yIndexF.y - yIndexY);
+    addVelocityY(yIndexX, yIndexY, velocity.y * (1 - coefY.x) * (1 - coefY.y));
+    addVelocityY(yIndexX + 1, yIndexY, velocity.y * coefY.x * (1 - coefY.y));
+    addVelocityY(yIndexX, yIndexY + 1, velocity.y * (1 - coefY.x) * coefY.y);
+    addVelocityY(yIndexX + 1, yIndexY + 1, velocity.y * coefY.x * coefY.y);
   }
-  //
-  // private void addVelocity(int gridIndexX, int gridIndexY, PVector velocity) {
-  //   if (gridIndexX < 0 || gridIndexX >= numGridX ||
-  //     gridIndexY < 0 || gridIndexY >= numGridY) {
-  //     return;
-  //   }
-  //   prevVelocities[gridIndexX][gridIndexY].add(velocity);
-  // }
+
+  private void addVelocityX(int gridIndexX, int gridIndexY, float velocityX) {
+    if (gridIndexX < 0 || gridIndexX >= numGridX ||
+      gridIndexY < 0 || gridIndexY >= numGridY) {
+      return;
+    }
+    prevVelocitiesX[gridIndexX][gridIndexY] += velocityX;
+  }
+
+  private void addVelocityY(int gridIndexX, int gridIndexY, float velocityY) {
+    if (gridIndexX < 0 || gridIndexX >= numGridX ||
+      gridIndexY < 0 || gridIndexY >= numGridY) {
+      return;
+    }
+    prevVelocitiesY[gridIndexX][gridIndexY] += velocityY;
+  }
+
+  private PVector generatePosition(int gridIndexX, int gridIndexY) {
+    return new PVector(gridIndexX, gridIndexY).add(0.5, 0.5).mult(gridSize);
+  }
 
   void draw() {
-    // for (int i = 0; i < numGridX; i++) {
-    //   for (int j = 0; j < numGridY; j++) {
-    //     noStroke();
-    //     fill(0);
-    //     PVector position = generateVelocityPosition(i, j);
-    //     float pressure = prevPressures[i][j];
-    //     ellipse(position.x, position.y, pressure * 20, pressure * 20);
-    //     stroke(0);
-    //     noFill();
-    //     PVector velocity = prevVelocities[i][j];
-    //     line(
-    //       position.x,
-    //       position.y,
-    //       position.x + velocity.x * 5,
-    //       position.y + velocity.y * 5
-    //     );
-    //   }
-    // }
+    for (int i = 0; i < numGridX; i++) {
+      for (int j = 0; j < numGridY; j++) {
+        noStroke();
+        fill(0);
+        PVector position = generatePosition(i, j);
+        float pressure = prevPressures[i][j];
+        ellipse(position.x, position.y, pressure * 20, pressure * 20);
+        stroke(0);
+        noFill();
+        float velocityX = (prevVelocitiesX[i][j] + prevVelocitiesX[i + 1][j]) / 2.0;
+        float velocityY = (prevVelocitiesY[i][j] + prevVelocitiesY[i][j + 1]) / 2.0;
+        line(
+          position.x,
+          position.y,
+          position.x + velocityX * 5,
+          position.y + velocityY * 5
+        );
+      }
+    }
   }
 }

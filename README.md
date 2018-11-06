@@ -30,3 +30,5 @@
 - [SOR法](https://ja.wikipedia.org/wiki/SOR%E6%B3%95)
 
 ### simple1_staggered_grid
+- staggered grid  
+![imag](./images/staggered-grid.png)
