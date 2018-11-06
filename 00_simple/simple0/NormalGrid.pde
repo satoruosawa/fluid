@@ -36,7 +36,7 @@ class NormalGrid {
     for (int i = 0; i < numGridX; i++) {
       for (int j = 0; j < numGridY; j++) {
         // semi-Lagrangian
-        PVector position = new PVector(i, j).mult(gridSize); // skip centering
+        PVector position = new PVector(i, j).mult(gridSize); // skipped centering
         PVector backTracedPosition = position.sub(prevVelocities[i][j]);
         PVector backTracedGridIndex = PVector.div(backTracedPosition, gridSize);
         velocities[i][j] = calculateLerpPrevVelocity(
@@ -158,10 +158,6 @@ class NormalGrid {
     }
   }
 
-  private PVector generateVelocityPosition(int gridIndexX, int gridIndexY) {
-    return (new PVector(gridIndexX, gridIndexY).add(0.5, 0.5)).mult(gridSize);
-  }
-
   private PVector getPrevVelocity(int gridIndexX, int gridIndexY) {
     if (gridIndexX < 0 || gridIndexX >= numGridX ||
       gridIndexY < 0 || gridIndexY >= numGridY) {
@@ -182,12 +178,12 @@ class NormalGrid {
     PVector velocityRef = PVector.div(position, gridSize).sub(0.5, 0.5);
     int left = floor(velocityRef.x);
     int top = floor(velocityRef.y);
-    float alpha = (velocityRef.x) - left;
-    float beta = (velocityRef.y) - top;
-    addVelocity(left, top, PVector.mult(velocity, (1 - alpha) * (1 - beta)));
-    addVelocity(left + 1, top, PVector.mult(velocity, alpha * (1 - beta)));
-    addVelocity(left, top + 1, PVector.mult(velocity, (1 - alpha) * beta));
-    addVelocity(left + 1, top + 1, PVector.mult(velocity, alpha * beta));
+    float coefX = velocityRef.x - left;
+    float coefY = velocityRef.y - top;
+    addVelocity(left, top, PVector.mult(velocity, (1 - coefX) * (1 - coefY)));
+    addVelocity(left + 1, top, PVector.mult(velocity, coefX * (1 - coefY)));
+    addVelocity(left, top + 1, PVector.mult(velocity, (1 - coefX) * coefY));
+    addVelocity(left + 1, top + 1, PVector.mult(velocity, coefX * coefY));
   }
 
   private void addVelocity(int gridIndexX, int gridIndexY, PVector velocity) {
@@ -198,12 +194,16 @@ class NormalGrid {
     prevVelocities[gridIndexX][gridIndexY].add(velocity);
   }
 
+  private PVector generatePosition(int gridIndexX, int gridIndexY) {
+    return new PVector(gridIndexX, gridIndexY).add(0.5, 0.5).mult(gridSize);
+  }
+
   void draw() {
     for (int i = 0; i < numGridX; i++) {
       for (int j = 0; j < numGridY; j++) {
         noStroke();
         fill(0);
-        PVector position = generateVelocityPosition(i, j);
+        PVector position = generatePosition(i, j);
         float pressure = prevPressures[i][j];
         ellipse(position.x, position.y, pressure * 20, pressure * 20);
         stroke(0);
