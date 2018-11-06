@@ -1,25 +1,27 @@
 class NormalGrid {
   private int gridSize;
-  private int numColumn;
-  private int numRow;
-  private PVector[] prevVelocities;
-  private PVector[] velocities;
-  private float[] prevPressures;
-  private float[] pressures;
+  private int numGridX;
+  private int numGridY;
+  private PVector[][] prevVelocities;
+  private PVector[][] velocities;
+  private float[][] prevPressures;
+  private float[][] pressures;
 
-  public NormalGrid(int gridSize, int numColumn, int numRow) {
+  public NormalGrid(int gridSize, int numGridX, int numGridY) {
     this.gridSize = gridSize;
-    this.numColumn = numColumn;
-    this.numRow = numRow;
-    prevVelocities = new PVector[numColumn * numRow];
-    velocities = new PVector[numColumn * numRow];
-    prevPressures = new float[numColumn * numRow];
-    pressures = new float[numColumn * numRow];
-    for (int i = 0; i < numColumn * numRow; i++) {
-      prevVelocities[i] = new PVector(0, 0);
-      velocities[i] = new PVector(0, 0);
-      prevPressures[i] = 0.0;
-      pressures[i] = 0.0;
+    this.numGridX = numGridX;
+    this.numGridY = numGridY;
+    prevVelocities = new PVector[numGridX][numGridY];
+    velocities = new PVector[numGridX][numGridY];
+    prevPressures = new float[numGridX][numGridY];
+    pressures = new float[numGridX][numGridY];
+    for (int j = 0; j < numGridY; j++) {
+      for (int i = 0; i < numGridX; i++) {
+        prevVelocities[i][j] = new PVector(0, 0);
+        velocities[i][j] = new PVector(0, 0);
+        prevPressures[i][j] = 0.0;
+        pressures[i][j] = 0.0;
+      }
     }
   }
 
@@ -31,27 +33,41 @@ class NormalGrid {
   }
 
   private void updteConvection() {
-    for (int i = 0; i < numColumn; i++) {
-      for (int j = 0; j < numRow; j++) {
+    for (int i = 0; i < numGridX; i++) {
+      for (int j = 0; j < numGridY; j++) {
         // semi-Lagrangian
-        PVector velocityPosition = new PVector(i, j).mult(gridSize);
-        PVector prevVelocityPosition = velocityPosition
-          .sub(prevVelocities[getIndex(i, j)]);
-        PVector prevVelocityRef = PVector.div(prevVelocityPosition, gridSize);
-        velocities[getIndex(i, j)] = calculateLerpPrevVelocity(
-          prevVelocityRef.x, prevVelocityRef.y);
+        PVector position = new PVector(i, j).mult(gridSize);
+        PVector backTracedPosition = position.sub(prevVelocities[i][j]);
+        PVector backTracedGridIndex = PVector.div(backTracedPosition, gridSize);
+        velocities[i][j] = calculateLerpPrevVelocity(
+          backTracedGridIndex.x, backTracedGridIndex.y);
       }
     }
-    for (int i = 0; i < numColumn; i++) {
-      for (int j = 0; j < numRow; j++) {
-        prevVelocities[getIndex(i, j)] = velocities[getIndex(i, j)].copy();
-      }
-    }
+    copyVelocitiesToPrevVelocities();
+  }
+
+  private PVector calculateLerpPrevVelocity(
+    float gridIndexX, float gridIndexY) {
+    int left = floor(gridIndexX);
+    int top = floor(gridIndexY);
+    int right = left + 1;
+    int bottom = top + 1;
+    PVector topLerp = PVector.lerp(
+      getPrevVelocity(left, top),
+      getPrevVelocity(right, top),
+      gridIndexX - left
+    );
+    PVector bottomLerp = PVector.lerp(
+      getPrevVelocity(left, bottom),
+      getPrevVelocity(right, bottom),
+      gridIndexX - left
+    );
+    return PVector.lerp(topLerp, bottomLerp, gridIndexY - top);
   }
 
   private void updateDiffusion() {
-    for (int i = 0; i < numColumn; i++) {
-      for (int j = 0; j < numRow; j++) {
+    for (int j = 0; j < numGridY; j++) {
+      for (int i = 0; i < numGridX; i++) {
         // Explicit way
         // h = dx = dy = rectSize
         // Dynamic and kinematic viscosity [nu]
@@ -67,17 +83,14 @@ class NormalGrid {
         PVector bottomVelocity = getPrevVelocity(i, j + 1);
         PVector total = PVector
           .add(leftVelocity, rightVelocity)
-          .add(topVelocity).add(bottomVelocity);
-        velocities[getIndex(i, j)] = PVector
-          .mult(prevVelocities[getIndex(i, j)], centerRatio)
+          .add(topVelocity)
+          .add(bottomVelocity);
+        velocities[i][j] = PVector
+          .mult(prevVelocities[i][j], centerRatio)
           .add(total.mult(surroundRatio));
       }
     }
-    for (int i = 0; i < numColumn; i++) {
-      for (int j = 0; j < numRow; j++) {
-        prevVelocities[getIndex(i, j)] = velocities[getIndex(i, j)].copy();
-      }
-    }
+    copyVelocitiesToPrevVelocities();
   }
 
   private void updatePressure() {
@@ -85,98 +98,84 @@ class NormalGrid {
     // TODO: case of boundary
     // SOR (Successive over-relaxation)
     int numSorRepeat = 3;
-    float sorRelaxationFactor = 1.01; // should more than 1
+    float sorRelaxationFactor = 1.0; // should more than 1
     // h = dx = dy = rectSize
     // Density [rho]
     // poissonCoef = h * rho / dt
     float poissonCoef = 0.1;
     for (int k = 0; k < numSorRepeat; k++) {
-      for (int i = 0; i < numColumn; i++) {
-        for (int j = 0; j < numRow; j++) {
-          pressures[getIndex(i, j)] =
+      for (int j = 0; j < numGridY; j++) {
+        for (int i = 0; i < numGridX; i++) {
+          pressures[i][j] =
             (1 - sorRelaxationFactor) * getPrevPressure(i, j) +
             sorRelaxationFactor * calculatePoissonsEquation(i, j, poissonCoef);
         }
       }
-      for (int i = 0; i < numColumn; i++) {
-        for (int j = 0; j < numRow; j++) {
-          prevPressures[getIndex(i, j)] = pressures[getIndex(i, j)];
+      for (int j = 0; j < numGridY; j++) {
+        for (int i = 0; i < numGridX; i++) {
+          prevPressures[i][j] = pressures[i][j];
         }
       }
     }
-    for (int i = 0; i < numColumn; i++) {
-      for (int j = 0; j < numRow; j++) {
+    for (int j = 0; j < numGridY; j++) {
+      for (int i = 0; i < numGridX; i++) {
         float leftPressure = getPrevPressure(i - 1, j);
         float rightPressure = getPrevPressure(i + 1, j);
         float topPressure = getPrevPressure(i, j - 1);
         float bottomPressure = getPrevPressure(i, j + 1);
-        velocities[getIndex(i, j)] = PVector
-          .add(prevVelocities[getIndex(i, j)], new PVector(
+        velocities[i][j] = PVector
+          .add(prevVelocities[i][j], new PVector(
             leftPressure - rightPressure,
             topPressure - bottomPressure
           ).div(poissonCoef));
       }
     }
-    for (int i = 0; i < numColumn; i++) {
-      for (int j = 0; j < numRow; j++) {
-        prevVelocities[getIndex(i, j)] = velocities[getIndex(i, j)].copy();
+    copyVelocitiesToPrevVelocities();
+  }
+
+  private float calculatePoissonsEquation(
+    int gridIndexX, int gridIndexY, float poissonCoef) {
+    // PVector centerVelocity = getPrevVelocity(i, j);
+    PVector leftVelocity = getPrevVelocity(gridIndexX - 1, gridIndexY);
+    PVector rightVelocity = getPrevVelocity(gridIndexX + 1, gridIndexY);
+    PVector topVelocity = getPrevVelocity(gridIndexX, gridIndexY - 1);
+    PVector bottomVelocity = getPrevVelocity(gridIndexX, gridIndexY + 1);
+    float divVelocity = poissonCoef *
+      (rightVelocity.x - leftVelocity.x + bottomVelocity.y - topVelocity.y);
+    float leftPressure = getPrevPressure(gridIndexX - 1, gridIndexY);
+    float rightPressure = getPrevPressure(gridIndexX + 1, gridIndexY);
+    float topPressure = getPrevPressure(gridIndexX, gridIndexY - 1);
+    float bottomPressure = getPrevPressure(gridIndexX, gridIndexY + 1);
+    return (leftPressure + rightPressure + topPressure + bottomPressure -
+      divVelocity) / 4.0;
+  }
+
+  private void copyVelocitiesToPrevVelocities() {
+    for (int j = 0; j < numGridY; j++) {
+      for (int i = 0; i < numGridX; i++) {
+        prevVelocities[i][j] = velocities[i][j].copy();
       }
     }
   }
 
-  private int getIndex(int column, int row) {
-    return row * numColumn + column;
+  private PVector generateVelocityPosition(int gridIndexX, int gridIndexY) {
+    return (new PVector(gridIndexX, gridIndexY).add(0.5, 0.5)).mult(gridSize);
   }
 
-  private PVector generateVelocityPosition(int column, int row) {
-    return (new PVector(column, row).add(0.5, 0.5)).mult(gridSize);
-  }
-
-  private PVector getPrevVelocity(int column, int row) {
-    if (column < 0 || column >= numColumn || row < 0 || row >= numRow) {
+  private PVector getPrevVelocity(int gridIndexX, int gridIndexY) {
+    if (gridIndexX < 0 || gridIndexX >= numGridX ||
+      gridIndexY < 0 || gridIndexY >= numGridY) {
       return new PVector(0, 0);
     }
-    return prevVelocities[getIndex(column, row)];
+    return prevVelocities[gridIndexX][gridIndexY];
   }
 
-  private float getPrevPressure(int column, int row) {
-    if (column < 0 || column >= numColumn || row < 0 || row >= numRow) {
+  private float getPrevPressure(int gridIndexX, int gridIndexY) {
+    if (gridIndexX < 0 || gridIndexX >= numGridX ||
+      gridIndexY < 0 || gridIndexY >= numGridY) {
       return 0.0;
     }
-    return prevPressures[getIndex(column, row)];
-  }
-
-  private PVector calculateLerpPrevVelocity(float column, float row) {
-    int left = floor(column);
-    int top = floor(row);
-    int right = left + 1;
-    int bottom = top + 1;
-    PVector topLerp = PVector.lerp(
-      getPrevVelocity(left, top), getPrevVelocity(right, top), column - left
-    );
-    PVector bottomLerp = PVector.lerp(
-      getPrevVelocity(left, bottom),
-      getPrevVelocity(right, bottom),
-      column - left
-    );
-    return PVector.lerp(topLerp, bottomLerp, row - top);
-  }
-
-  private float calculatePoissonsEquation(
-    int column, int row, float poissonCoef) {
-    // PVector centerVelocity = getPrevVelocity(i, j);
-    PVector leftVelocity = getPrevVelocity(column - 1, row);
-    PVector rightVelocity = getPrevVelocity(column + 1, row);
-    PVector topVelocity = getPrevVelocity(column, row - 1);
-    PVector bottomVelocity = getPrevVelocity(column, row + 1);
-    float divVelocity = poissonCoef *
-      (rightVelocity.x - leftVelocity.x + bottomVelocity.y - topVelocity.y);
-    float leftPressure = getPrevPressure(column - 1, row);
-    float rightPressure = getPrevPressure(column + 1, row);
-    float topPressure = getPrevPressure(column, row - 1);
-    float bottomPressure = getPrevPressure(column, row + 1);
-    return (leftPressure + rightPressure + topPressure + bottomPressure -
-      divVelocity) / 4.0;
+    return prevPressures[gridIndexX][gridIndexY];
   }
 
   public void addLerpVelocity(PVector position, PVector velocity) {
@@ -191,24 +190,25 @@ class NormalGrid {
     addVelocity(left + 1, top + 1, PVector.mult(velocity, alpha * beta));
   }
 
-  private void addVelocity(int column, int row, PVector velocity) {
-    if (column < 0 || column >= numColumn || row < 0 || row >= numRow) {
+  private void addVelocity(int gridIndexX, int gridIndexY, PVector velocity) {
+    if (gridIndexX < 0 || gridIndexX >= numGridX ||
+      gridIndexY < 0 || gridIndexY >= numGridY) {
       return;
     }
-    prevVelocities[getIndex(column, row)].add(velocity);
+    prevVelocities[gridIndexX][gridIndexY].add(velocity);
   }
 
   void draw() {
-    for (int i = 0; i < numColumn; i++) {
-      for (int j = 0; j < numRow; j++) {
+    for (int i = 0; i < numGridX; i++) {
+      for (int j = 0; j < numGridY; j++) {
         noStroke();
         fill(0);
         PVector position = generateVelocityPosition(i, j);
-        float pressure = prevPressures[getIndex(i, j)];
+        float pressure = prevPressures[i][j];
         ellipse(position.x, position.y, pressure * 20, pressure * 20);
         stroke(0);
         noFill();
-        PVector velocity = prevVelocities[getIndex(i, j)];
+        PVector velocity = prevVelocities[i][j];
         line(
           position.x,
           position.y,
