@@ -35,9 +35,11 @@ class NormalGrid {
       for (int j = 0; j < numRow; j++) {
         // semi-Lagrangian
         PVector velocityPosition = new PVector(i, j).mult(gridSize);
-        PVector prevVelocityPosition = velocityPosition.sub(prevVelocities[getIndex(i, j)]);
+        PVector prevVelocityPosition = velocityPosition
+          .sub(prevVelocities[getIndex(i, j)]);
         PVector prevVelocityRef = PVector.div(prevVelocityPosition, gridSize);
-        velocities[getIndex(i, j)] = calculateLerpPrevVelocity(prevVelocityRef.x, prevVelocityRef.y);
+        velocities[getIndex(i, j)] = calculateLerpPrevVelocity(
+          prevVelocityRef.x, prevVelocityRef.y);
       }
     }
     for (int i = 0; i < numColumn; i++) {
@@ -83,7 +85,7 @@ class NormalGrid {
     // TODO: case of boundary
     // SOR (Successive over-relaxation)
     int numSorRepeat = 3;
-    float sorRelaxationFactor = 1.00; // should more than 1
+    float sorRelaxationFactor = 1.01; // should more than 1
     // h = dx = dy = rectSize
     // Density [rho]
     // poissonCoef = h * rho / dt
@@ -153,7 +155,9 @@ class NormalGrid {
       getPrevVelocity(left, top), getPrevVelocity(right, top), column - left
     );
     PVector bottomLerp = PVector.lerp(
-      getPrevVelocity(left, bottom), getPrevVelocity(right, bottom), column - left
+      getPrevVelocity(left, bottom),
+      getPrevVelocity(right, bottom),
+      column - left
     );
     return PVector.lerp(topLerp, bottomLerp, row - top);
   }
