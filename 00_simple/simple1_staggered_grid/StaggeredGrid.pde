@@ -226,96 +226,81 @@ class StaggeredGrid {
   // //   return prevPressures[gridIndexX][gridIndexY];
   // // }
   // //
-  public void addLerpVelocity(PVector position, PVector velocity) {
-    PVector gridIndexF = PVector.div(position, gridSize).sub(0.5, 0.5);
-    addLerpVelocityX(gridIndexF, velocity.x);
-    addLerpVelocityY(gridIndexF, velocity.y);
-    // PVector indexF = PVector.div(position, gridSize).sub(0.5, 0.5);
-    // int xIndexX = floor(xIndexF.x);
-    // int xIndexY = floor(xIndexF.y);
-    // PVector coefX = new PVector(xIndexF.x - xIndexX, xIndexF.y - xIndexY);
-    // addVelocityX(xIndexX, xIndexY, velocity.x * (1 - coefX.x) * (1 - coefX.y));
-  //   addVelocityX(xIndexX + 1, xIndexY, velocity.x * coefX.x * (1 - coefX.y));
-  //   addVelocityX(xIndexX, xIndexY + 1, velocity.x * (1 - coefX.x) * coefX.y);
-  //   addVelocityX(xIndexX + 1, xIndexY + 1, velocity.x * coefX.x * coefX.y);
-  //   // For Y
-  //   PVector yIndexF = PVector.div(position, gridSize).sub(0.5, 0.0);
-  //   int yIndexX = floor(yIndexF.x);
-  //   int yIndexY = floor(yIndexF.y);
-  //   PVector coefY = new PVector(yIndexF.x - yIndexX, yIndexF.y - yIndexY);
-  //   addVelocityY(yIndexX, yIndexY, velocity.y * (1 - coefY.x) * (1 - coefY.y));
-  //   addVelocityY(yIndexX + 1, yIndexY, velocity.y * coefY.x * (1 - coefY.y));
-  //   addVelocityY(yIndexX, yIndexY + 1, velocity.y * (1 - coefY.x) * coefY.y);
-  //   addVelocityY(yIndexX + 1, yIndexY + 1, velocity.y * coefY.x * coefY.y);
+  public void addLerpPrevVelocity(PVector position, PVector velocity) {
+    PVector indexF = PVector.div(position, gridSize).sub(0.5, 0.5);
+    addLerpPrevVelocityX(indexF, velocity.x);
+    addLerpPrevVelocityY(indexF, velocity.y);
   }
 
-  private void addLerpVelocityX(PVector gridIndexF, float velocityX) {
-    if (gridIndexF.x < -0.5 || gridIndexF.x >= numGridX - 0.5 ||
-      gridIndexF.y < 0.0 || gridIndexF.y >= numGridY - 1.0) {
+  private void addLerpPrevVelocityX(PVector indexF, float velocityX) {
+    if (indexF.x < -0.5 || indexF.x >= numGridX - 0.5 ||
+      indexF.y < 0.0 || indexF.y >= numGridY - 1.0) {
       // Out of Field.
       return;
     }
-    float topLeftX = floor(gridIndexF.x + 0.5) - 0.5;
-    int topLeftY = int(gridIndexF.y);
-    PVector coef = new PVector(gridIndexF.x - topLeftX, gridIndexF.y - topLeftY);
-    addVelocityX(topLeftX, topLeftY, velocityX * (1 - coef.x) * (1 - coef.y));
-    addVelocityX(topLeftX + 1, topLeftY, velocityX * coef.x * (1 - coef.y));
-    addVelocityX(topLeftX, topLeftY + 1, velocityX * (1 - coef.x) * coef.y);
-    addVelocityX(topLeftX + 1, topLeftY + 1, velocityX * coef.x * coef.y);
+    float topLeftXH = floor(indexF.x + 0.5) - 0.5;
+    float coefX = indexF.x - topLeftXH;
+    int topLeftY = int(indexF.y);
+    float coefY = indexF.y - topLeftY;
+    addPrevVelocityX(topLeftXH, topLeftY, velocityX * (1 - coefX) * (1 - coefY));
+    addPrevVelocityX(topLeftXH + 1, topLeftY, velocityX * coefX * (1 - coefY));
+    addPrevVelocityX(topLeftXH, topLeftY + 1, velocityX * (1 - coefX) * coefY);
+    addPrevVelocityX(topLeftXH + 1, topLeftY + 1, velocityX * coefX * coefY);
   }
 
-  private void addVelocityX(float gridIndexXF, int gridIndexY, float velocityX) {
-    // gridIndexXF should be -0.5, 0.5, 1.5, 2.5, ...
-    int gridIndexX = int(floor(gridIndexXF + 1.0));
-    if (gridIndexX < 0 || gridIndexX >= numGridX + 1 ||
-      gridIndexY < 0 || gridIndexY >= numGridY) {
+  private void addPrevVelocityX(float indexXH, int indexY, float velocityX) {
+    // indexXH should be -0.5, 0.5, 1.5, 2.5, ...
+    int indexX = int(indexXH + 1.0);
+    if (indexX < 0 || indexX >= numGridX + 1 ||
+      indexY < 0 || indexY >= numGridY) {
       println("No index in prevVelocitiesX.");
       return;
     }
-    prevVelocitiesX[gridIndexX][gridIndexY] += velocityX;
+    prevVelocitiesX[indexX][indexY] += velocityX;
   }
 
-  private void addLerpVelocityY(PVector gridIndexF, float velocityY) {
-    if (gridIndexF.x < 0.0 || gridIndexF.x >= numGridX - 1.0 ||
-      gridIndexF.y < -0.5 || gridIndexF.y >= numGridY - 0.5) {
+  private void addLerpPrevVelocityY(PVector indexF, float velocityY) {
+    if (indexF.x < 0.0 || indexF.x >= numGridX - 1.0 ||
+      indexF.y < -0.5 || indexF.y >= numGridY - 0.5) {
       // Out of Field.
       return;
     }
-    int topLeftX = int(gridIndexF.x);
-    float topLeftY = floor(gridIndexF.y + 0.5) - 0.5;
-    PVector coef = new PVector(gridIndexF.x - topLeftX, gridIndexF.y - topLeftY);
-    addVelocityY(topLeftX, topLeftY, velocityY * (1 - coef.x) * (1 - coef.y));
-    addVelocityY(topLeftX + 1, topLeftY, velocityY * coef.x * (1 - coef.y));
-    addVelocityY(topLeftX, topLeftY + 1, velocityY * (1 - coef.x) * coef.y);
-    addVelocityY(topLeftX + 1, topLeftY + 1, velocityY * coef.x * coef.y);
+    int topLeftX = int(indexF.x);
+    float coefX = indexF.x - topLeftX;
+    float topLeftYH = floor(indexF.y + 0.5) - 0.5;
+    float coefY = indexF.y - topLeftYH;
+    addPrevVelocityY(topLeftX, topLeftYH, velocityY * (1 - coefX) * (1 - coefY));
+    addPrevVelocityY(topLeftX + 1, topLeftYH, velocityY * coefX * (1 - coefY));
+    addPrevVelocityY(topLeftX, topLeftYH + 1, velocityY * (1 - coefX) * coefY);
+    addPrevVelocityY(topLeftX + 1, topLeftYH + 1, velocityY * coefX * coefY);
   }
 
-  private void addVelocityY(int gridIndexX, float gridIndexYF, float velocityY) {
-    // gridIndexXF should be -0.5, 0.5, 1.5, 2.5, ...
-    int gridIndexY = int(floor(gridIndexYF + 1.0));
-    if (gridIndexX < 0 || gridIndexX >= numGridX ||
-      gridIndexY < 0 || gridIndexY >= numGridY + 1) {
+  private void addPrevVelocityY(int indexX, float indexYH, float velocityY) {
+    // indexYH should be -0.5, 0.5, 1.5, 2.5, ...
+    int indexY = int(indexYH + 1.0);
+    if (indexX < 0 || indexX >= numGridX ||
+      indexY < 0 || indexY >= numGridY + 1) {
       println("No index in prevVelocitiesY.");
       return;
     }
-    prevVelocitiesY[gridIndexX][gridIndexY] += velocityY;
+    prevVelocitiesY[indexX][indexY] += velocityY;
   }
 
-  private PVector generatePosition(int gridIndexX, int gridIndexY) {
-    return new PVector(gridIndexX, gridIndexY).add(0.5, 0.5).mult(gridSize);
+  private PVector generatePosition(int indexX, int indexY) {
+    return new PVector(indexX, indexY).add(0.5, 0.5).mult(gridSize);
   }
 
-  private float getLerpPrevVelocityX(float gridIndexXF, int gridIndexY) {
-    if (gridIndexXF < -0.5 || gridIndexXF >= numGridX - 0.5 ||
-      gridIndexY < 0 || gridIndexY >= numGridY) {
+  private float getLerpPrevVelocityX(float indexXH, int indexY) {
+    if (indexXH < -0.5 || indexXH >= numGridX - 0.5 ||
+      indexY < 0 || indexY >= numGridY) {
       println("Out of field. getLerpPrevVelocityX");
       return 0.0;
     }
-    float leftX = floor(gridIndexXF + 0.5) - 0.5;
-    float coef = gridIndexXF - leftX;
+    float leftX = floor(indexXH + 0.5) - 0.5;
+    float coef = indexXH - leftX;
     return lerp(
-      getPrevVelocityX(leftX, gridIndexY),
-      getPrevVelocityX(leftX + 1, gridIndexY),
+      getPrevVelocityX(leftX, indexY),
+      getPrevVelocityX(leftX + 1, indexY),
       coef
     );
   }

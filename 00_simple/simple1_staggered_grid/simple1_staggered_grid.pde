@@ -20,5 +20,5 @@ void draw() {
 void mouseMoved() {
   PVector diffMouse = new PVector(mouseX - pmouseX, mouseY - pmouseY).mult(10);
   PVector position = new PVector(mouseX, mouseY);
-  grid.addLerpVelocity(position, diffMouse);
+  grid.addLerpPrevVelocity(position, diffMouse);
 }
