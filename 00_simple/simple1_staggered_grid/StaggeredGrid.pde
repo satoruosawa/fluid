@@ -16,20 +16,20 @@ class StaggeredGrid {
     this.numGridY = numGridY;
     prevVelocitiesX = new float[numGridX + 1][numGridY];
     velocitiesX = new float[numGridX + 1][numGridY];
-    // for (int j = 0; j < numGridY; j++) {
-    //   for (int i = 0; i < numGridX + 1; i++) {
-    //     prevVelocitiesX[i][j] = 0.0;
-    //     velocitiesX[i][j] = 0.0;
-    //   }
-    // }
+    for (int j = 0; j < numGridY; j++) {
+      for (int i = 0; i < numGridX + 1; i++) {
+        prevVelocitiesX[i][j] = 0.0;
+        velocitiesX[i][j] = 0.0;
+      }
+    }
     prevVelocitiesY = new float[numGridX][numGridY + 1];
     velocitiesY = new float[numGridX][numGridY + 1];
-    // for (int j = 0; j < numGridY + 1; j++) {
-    //   for (int i = 0; i < numGridX; i++) {
-    //     prevVelocitiesY[i][j] = 0.0;
-    //     velocitiesY[i][j] = 0.0;
-    //   }
-    // }
+    for (int j = 0; j < numGridY + 1; j++) {
+      for (int i = 0; i < numGridX; i++) {
+        prevVelocitiesY[i][j] = 0.0;
+        velocitiesY[i][j] = 0.0;
+      }
+    }
     // prevPressures = new float[numGridX][numGridY];
     // pressures = new float[numGridX][numGridY];
     // for (int j = 0; j < numGridY; j++) {
@@ -299,7 +299,7 @@ class StaggeredGrid {
 
   private float calculateLerpPrevVelocityX(PVector indexF) {
     if (indexF.x < -0.5 || indexF.x >= numGridX - 0.5 ||
-      indexF.y < 0 || indexF.y >= numGridY - 1.0) {
+      indexF.y < 0.0 || indexF.y >= numGridY - 1.0) {
       // Out of Field.
       return 0.0;
     }
@@ -332,7 +332,7 @@ class StaggeredGrid {
   }
 
   private float calculateLerpPrevVelocityY(PVector indexF) {
-    if (indexF.x < 0 || indexF.x >= numGridX - 1.0 ||
+    if (indexF.x < 0.0 || indexF.x >= numGridX - 1.0 ||
       indexF.y < -0.5 || indexF.y >= numGridY - 0.5) {
       // Out of Field.
       return 0.0;
