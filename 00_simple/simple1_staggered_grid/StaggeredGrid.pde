@@ -44,7 +44,7 @@ class StaggeredGrid {
     // TODO: Change to Staggered grid
     // Navier Stokes equations
     updteConvection();
-    // updateDiffusion();
+    updateDiffusion();
     // updatePressure();
   }
 
@@ -80,66 +80,41 @@ class StaggeredGrid {
       }
     }
   }
-  //
-  // private float calculateLerpPrevVelocityX(PVector gridIndexF) {
-  //   int xIndexX = floor(gridIndexF.x);
-  //   int xIndexY = floor(gridIndexF.y - 0.5);
-  //   float topLerp = lerp(
-  //     getPrevVelocityX(xIndexX, xIndexY),
-  //     getPrevVelocityX(xIndexX + 1, xIndexY),
-  //     gridIndexF.x - 0.5 - xIndexX
-  //   );
-  //   float bottomLerp = lerp(
-  //     getPrevVelocityX(xIndexX, xIndexY + 1),
-  //     getPrevVelocityX(xIndexX + 1, xIndexY + 1),
-  //     gridIndexF.x - 0.5 - xIndexX
-  //   );
-  //   return lerp(topLerp, bottomLerp, gridIndexF.y - 0.5 - xIndexY);
-  // }
-  //
-  // private float calculateLerpPrevVelocityY(PVector gridIndexF) {
-  //   int yIndexX = floor(gridIndexF.x - 0.5);
-  //   int yIndexY = floor(gridIndexF.y);
-  //   float topLerp = lerp(
-  //     getPrevVelocityY(yIndexX, yIndexY),
-  //     getPrevVelocityY(yIndexY + 1, yIndexY),
-  //     gridIndexF.x - 0.5 - yIndexX
-  //   );
-  //   float bottomLerp = lerp(
-  //     getPrevVelocityY(yIndexX, yIndexY + 1),
-  //     getPrevVelocityY(yIndexY + 1, yIndexY + 1),
-  //     gridIndexF.x - 0.5 - yIndexX
-  //   );
-  //   return lerp(topLerp, bottomLerp, gridIndexF.y - 0.5 - yIndexY);
-  // }
-  // //
-  // // private void updateDiffusion() {
-  // //   for (int j = 0; j < numGridY; j++) {
-  // //     for (int i = 0; i < numGridX; i++) {
-  // //       // Explicit way
-  // //       // h = dx = dy = rectSize
-  // //       // Dynamic and kinematic viscosity [nu]
-  // //       // surroundRatio = nu * dt / (h * h)
-  // //       float surroundRatio = 0.2; // 0 - 0.25
-  // //       float centerRatio = 1 - 4 * surroundRatio;
-  // //       // or you can define this way
-  // //       // float centerRatio = 0.2; // 0 - 1
-  // //       // float surroundRatio = (1 - centerRatio) / 4.0;
-  // //       PVector leftVelocity = getPrevVelocity(i - 1, j);
-  // //       PVector rightVelocity = getPrevVelocity(i + 1, j);
-  // //       PVector topVelocity = getPrevVelocity(i, j - 1);
-  // //       PVector bottomVelocity = getPrevVelocity(i, j + 1);
-  // //       PVector total = PVector
-  // //         .add(leftVelocity, rightVelocity)
-  // //         .add(topVelocity)
-  // //         .add(bottomVelocity);
-  // //       velocities[i][j] = PVector
-  // //         .mult(prevVelocities[i][j], centerRatio)
-  // //         .add(total.mult(surroundRatio));
-  // //     }
-  // //   }
-  // //   copyVelocitiesToPrevVelocities();
-  // // }
+
+  private void updateDiffusion() {
+    // Explicit way
+    // h = dx = dy = rectSize
+    // Dynamic and kinematic viscosity [nu]
+    // surroundRatio = nu * dt / (h * h)
+    float surroundRatio = 0.2; // 0 - 0.25
+    float centerRatio = 1 - 4 * surroundRatio;
+    // or you can define this way
+    // float centerRatio = 0.2; // 0 - 1
+    // float surroundRatio = (1 - centerRatio) / 4.0;
+    for (int j = 1; j < numGridY - 1; j++) {
+      for (int i = 1; i < numGridX; i++) {
+        float left = prevVelocitiesX[i - 1][j];
+        float right = prevVelocitiesX[i + 1][j];
+        float top = prevVelocitiesX[i][j - 1];
+        float bottom = prevVelocitiesX[i][j + 1];
+        float total = left + right + top + bottom;
+        velocitiesX[i][j] = prevVelocitiesX[i][j] * centerRatio +
+          total * surroundRatio;
+      }
+    }
+    for (int j = 1; j < numGridY; j++) {
+      for (int i = 1; i < numGridX - 1; i++) {
+        float left = prevVelocitiesY[i - 1][j];
+        float right = prevVelocitiesY[i + 1][j];
+        float top = prevVelocitiesY[i][j - 1];
+        float bottom = prevVelocitiesY[i][j + 1];
+        float total = left + right + top + bottom;
+        velocitiesY[i][j] = prevVelocitiesY[i][j] * centerRatio +
+          total * surroundRatio;
+      }
+    }
+    copyVelocitiesToPrevVelocities();
+  }
   // //
   // // private void updatePressure() {
   // //   // Incompressible
