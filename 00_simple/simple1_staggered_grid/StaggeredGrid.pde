@@ -55,7 +55,8 @@ class StaggeredGrid {
         PVector position = convertPositionFromGridIndexF(new PVector(i, j));
         PVector prevVelocity = calculateCenterPrevVelocity(i, j);
         PVector backTracedPosition = PVector.sub(position, prevVelocity);
-        PVector backTracedGridIndexF = convertGridIndexFFromPosition(backTracedPosition);
+        PVector backTracedGridIndexF =
+          convertGridIndexFFromPosition(backTracedPosition);
         PVector backTracedPrevVelocity =
           calculateLerpPrevVelocity(backTracedGridIndexF);
         addVelocityX(i - 0.5, j, backTracedPrevVelocity.x / 2.0);
@@ -343,7 +344,7 @@ class StaggeredGrid {
     int indexY = gridIndexY;
     if (indexX < 0 || indexX >= numGridX + 1 ||
       indexY < 0 || indexY >= numGridY) {
-      println("No index in prevVelocitiesX.");
+      println("No index in prevVelocitiesX. @getPrevVelocityX");
       return 0.0;
     }
     return prevVelocitiesX[indexX][indexY];
@@ -378,7 +379,7 @@ class StaggeredGrid {
     int indexY = int(gridIndexYH + 1.0);
     if (indexX < 0 || indexX >= numGridX ||
       indexY < 0 || indexY >= numGridY + 1) {
-      println("No index in prevVelocitiesY.");
+      println("No index in prevVelocitiesY. @getPrevVelocityY");
       return 0.0;
     }
     return prevVelocitiesY[indexX][indexY];
