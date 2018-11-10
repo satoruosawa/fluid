@@ -66,17 +66,17 @@ class NormalGrid {
   }
 
   private void updateDiffusion() {
+    // Explicit way
+    // h = dx = dy = rectSize
+    // Dynamic and kinematic viscosity [nu]
+    // surroundRatio = nu * dt / (h * h)
+    float surroundRatio = 0.2; // 0 - 0.25
+    float centerRatio = 1 - 4 * surroundRatio;
+    // or you can define this way
+    // float centerRatio = 0.2; // 0 - 1
+    // float surroundRatio = (1 - centerRatio) / 4.0;
     for (int j = 0; j < numGridY; j++) {
       for (int i = 0; i < numGridX; i++) {
-        // Explicit way
-        // h = dx = dy = rectSize
-        // Dynamic and kinematic viscosity [nu]
-        // surroundRatio = nu * dt / (h * h)
-        float surroundRatio = 0.2; // 0 - 0.25
-        float centerRatio = 1 - 4 * surroundRatio;
-        // or you can define this way
-        // float centerRatio = 0.2; // 0 - 1
-        // float surroundRatio = (1 - centerRatio) / 4.0;
         PVector leftVelocity = getPrevVelocity(i - 1, j);
         PVector rightVelocity = getPrevVelocity(i + 1, j);
         PVector topVelocity = getPrevVelocity(i, j - 1);
