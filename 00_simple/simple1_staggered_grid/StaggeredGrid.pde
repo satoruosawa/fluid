@@ -41,7 +41,6 @@ class StaggeredGrid {
   }
 
   public void update() {
-    // TODO: Change to Staggered grid
     // Navier Stokes equations
     updteConvection();
     updateDiffusion();
@@ -391,7 +390,7 @@ class StaggeredGrid {
         noStroke();
         fill(0);
         PVector position = convertPositionFromGridIndexF(new PVector(i, j));
-        float pressure = 0; // TODO
+        float pressure = prevPressures[i][j];
         ellipse(position.x, position.y, pressure * 20, pressure * 20);
         stroke(0);
         noFill();
