@@ -3,6 +3,8 @@ import java.util.Iterator;
 FluidGrid FLUID_GRID;
 ParticleSystem PARTICLE_SYSTEM = new ParticleSystem();
 int GRID_WIDTH = 10;
+boolean DRAW_GRID = false;
+boolean DRAW_PARTICLES = true;
 
 void setup() {
   size(1080, 1080);
@@ -29,8 +31,12 @@ void draw() {
   stroke(220);
   strokeWeight(GRID_WIDTH * 2);
   rect(0, 0, width, height);
-  // FLUID_GRID.draw();
-  PARTICLE_SYSTEM.draw();
+  if (DRAW_GRID) {
+    FLUID_GRID.draw();
+  }
+  if (DRAW_PARTICLES) {
+    PARTICLE_SYSTEM.draw();
+  }
   // saveFrame("frames/######.tif");
 }
 
@@ -50,4 +56,17 @@ void addParticle() {
   p.life(511);
   p.size(3);
   PARTICLE_SYSTEM.addParticle(p);
+}
+
+void keyPressed() {
+  switch (key) {
+    case 'g':
+      DRAW_GRID = !DRAW_GRID;
+     break;
+    case 'p':
+      DRAW_PARTICLES = !DRAW_PARTICLES;
+     break;
+    default:
+      break;
+  }
 }

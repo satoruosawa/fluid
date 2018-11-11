@@ -449,7 +449,7 @@ class StaggeredGrid {
     for (int i = 0; i < numGridX; i++) {
       for (int j = 0; j < numGridY; j++) {
         noStroke();
-        fill(200, 0, 0);
+        fill(0, 0, 200);
         PVector position = convertPositionFromGridIndexF(new PVector(i, j));
         float pressure = prevPressures[i][j];
         ellipse(position.x, position.y, pressure * 20, pressure * 20);
