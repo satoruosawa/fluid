@@ -1,24 +1,25 @@
-StaggeredGrid grid;
-int rectSize = 10;
+StaggeredGrid STAGGERED_GRID;
+int GRID_WIDTH = 10;
 
 void setup() {
   size(1080, 1080);
-  grid = new StaggeredGrid(rectSize, width / rectSize, height / rectSize);
+  STAGGERED_GRID = new StaggeredGrid(
+    GRID_WIDTH, width / GRID_WIDTH, height / GRID_WIDTH);
 }
 
 void update() {
-  grid.update();
+  STAGGERED_GRID.update();
 }
 
 void draw() {
   update();
   background(255);
-  grid.draw();
+  STAGGERED_GRID.draw();
   // saveFrame("frames/######.tif");
 }
 
 void mouseMoved() {
   PVector diffMouse = new PVector(mouseX - pmouseX, mouseY - pmouseY).mult(10);
   PVector position = new PVector(mouseX, mouseY);
-  grid.addLerpPrevVelocity(position, diffMouse);
+  STAGGERED_GRID.addLerpPrevVelocity(position, diffMouse);
 }

@@ -1,5 +1,5 @@
 class NormalGrid {
-  private int gridSize;
+  private int gridWidth;
   private int numGridX;
   private int numGridY;
   private PVector[][] prevVelocities;
@@ -7,8 +7,8 @@ class NormalGrid {
   private float[][] prevPressures;
   private float[][] pressures;
 
-  public NormalGrid(int gridSize, int numGridX, int numGridY) {
-    this.gridSize = gridSize;
+  public NormalGrid(int gridWidth, int numGridX, int numGridY) {
+    this.gridWidth = gridWidth;
     this.numGridX = numGridX;
     this.numGridY = numGridY;
     prevVelocities = new PVector[numGridX][numGridY];
@@ -181,11 +181,11 @@ class NormalGrid {
   }
 
   private PVector convertPositionFromGridIndexF(PVector gridIndexF) {
-    return gridIndexF.add(0.5, 0.5).mult(gridSize);
+    return gridIndexF.add(0.5, 0.5).mult(gridWidth);
   }
 
   private PVector convertGridIndexFFromPosition(PVector position) {
-    return position.div(gridSize).sub(0.5, 0.5);
+    return position.div(gridWidth).sub(0.5, 0.5);
   }
 
   private PVector calculateLerpPrevVelocity(PVector gridIndexF) {

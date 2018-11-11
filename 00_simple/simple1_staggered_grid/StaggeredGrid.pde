@@ -1,5 +1,5 @@
 class StaggeredGrid {
-  private int gridSize;
+  private int gridWidth;
   private int numGridX;
   private int numGridY;
   private float[][] prevVelocitiesX;
@@ -10,8 +10,8 @@ class StaggeredGrid {
   private float[][] pressures;
   private boolean isBoundaryConditionFreeSlip;
 
-  public StaggeredGrid(int gridSize, int numGridX, int numGridY) {
-    this.gridSize = gridSize;
+  public StaggeredGrid(int gridWidth, int numGridX, int numGridY) {
+    this.gridWidth = gridWidth;
     this.numGridX = numGridX;
     this.numGridY = numGridY;
     prevVelocitiesX = new float[numGridX + 1][numGridY];
@@ -293,11 +293,11 @@ class StaggeredGrid {
   }
 
   private PVector convertPositionFromGridIndexF(PVector gridIndexF) {
-    return gridIndexF.add(0.5, 0.5).mult(gridSize);
+    return gridIndexF.add(0.5, 0.5).mult(gridWidth);
   }
 
   private PVector convertGridIndexFFromPosition(PVector position) {
-    return position.div(gridSize).sub(0.5, 0.5);
+    return position.div(gridWidth).sub(0.5, 0.5);
   }
 
   private PVector calculateLerpPrevVelocity(PVector gridIndexF) {

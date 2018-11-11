@@ -1,24 +1,25 @@
-NormalGrid grid;
-int rectSize = 10;
+NormalGrid NORMAL_GRID;
+int GRID_WIDTH = 10;
 
 void setup() {
   size(1080, 1080);
-  grid = new NormalGrid(rectSize, width / rectSize, height / rectSize);
+  NORMAL_GRID = new NormalGrid(
+    GRID_WIDTH, width / GRID_WIDTH, height / GRID_WIDTH);
 }
 
 void update() {
-  grid.update();
+  NORMAL_GRID.update();
 }
 
 void draw() {
   update();
   background(255);
-  grid.draw();
+  NORMAL_GRID.draw();
   // saveFrame("frames/######.tif");
 }
 
 void mouseMoved() {
   PVector diffMouse = new PVector(mouseX - pmouseX, mouseY - pmouseY).mult(10);
   PVector position = new PVector(mouseX, mouseY);
-  grid.addLerpPrevVelocity(position, diffMouse);
+  NORMAL_GRID.addLerpPrevVelocity(position, diffMouse);
 }
