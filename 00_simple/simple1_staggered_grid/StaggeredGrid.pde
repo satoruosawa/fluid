@@ -44,7 +44,7 @@ class StaggeredGrid {
   public void update() {
     // Navier Stokes equations
     updteConvection();
-    // updateDiffusion();
+    updateDiffusion();
     // updatePressure();
   }
 
@@ -83,7 +83,6 @@ class StaggeredGrid {
   }
 
   private void updateDiffusion() {
-    // TODO: case of boundary
     // Explicit way
     // h = dx = dy = rectSize
     // Dynamic and kinematic viscosity [nu]
@@ -95,23 +94,29 @@ class StaggeredGrid {
     // float surroundRatio = (1 - centerRatio) / 4.0;
     for (int j = 1; j < numGridY - 1; j++) {
       for (int i = 1; i < numGridX; i++) {
-        float left = prevVelocitiesX[i - 1][j];
-        float right = prevVelocitiesX[i + 1][j];
-        float top = prevVelocitiesX[i][j - 1];
-        float bottom = prevVelocitiesX[i][j + 1];
+        float gridIndexXH = i - 0.5;
+        int gridIndexY = j;
+        float left = getPrevVelocityX(gridIndexXH - 1, gridIndexY);
+        float right = getPrevVelocityX(gridIndexXH + 1, gridIndexY);
+        float top = getPrevVelocityX(gridIndexXH, gridIndexY - 1);
+        float bottom = getPrevVelocityX(gridIndexXH, gridIndexY + 1);
         float total = left + right + top + bottom;
-        velocitiesX[i][j] = prevVelocitiesX[i][j] * centerRatio +
+        velocitiesX[i][j] =
+          getPrevVelocityX(gridIndexXH, gridIndexY) * centerRatio +
           total * surroundRatio;
       }
     }
     for (int j = 1; j < numGridY; j++) {
       for (int i = 1; i < numGridX - 1; i++) {
-        float left = prevVelocitiesY[i - 1][j];
-        float right = prevVelocitiesY[i + 1][j];
-        float top = prevVelocitiesY[i][j - 1];
-        float bottom = prevVelocitiesY[i][j + 1];
+        int gridIndexX = i;
+        float gridIndexYH = j - 0.5;
+        float left = getPrevVelocityY(gridIndexX - 1, gridIndexYH);
+        float right = getPrevVelocityY(gridIndexX + 1, gridIndexYH);
+        float top = getPrevVelocityY(gridIndexX, gridIndexYH - 1);
+        float bottom = getPrevVelocityY(gridIndexX, gridIndexYH + 1);
         float total = left + right + top + bottom;
-        velocitiesY[i][j] = prevVelocitiesY[i][j] * centerRatio +
+        velocitiesY[i][j] =
+          getPrevVelocityY(gridIndexX, gridIndexYH) * centerRatio +
           total * surroundRatio;
       }
     }
@@ -413,6 +418,16 @@ class StaggeredGrid {
       println("No index in prevVelocitiesY. @getPrevVelocityY");
       return 0.0;
     }
+    if (indexY == 1 || indexY == numGridY - 1) {
+      // On the wall
+      return 0.0;
+    } else if (indexY == 0) {
+      // In the wall
+      return -prevVelocitiesY[indexX][2];
+    } else if (indexY == numGridY) {
+      // In the wall
+      return -prevVelocitiesY[indexX][numGridY - 2];
+    }
     if (indexX == 0) {
       if (isBoundaryConditionFreeSlip) {
         // Free-slip condition(Neumann boundary condition)
@@ -427,16 +442,6 @@ class StaggeredGrid {
       }
       // Non-slip condition(Dirichlet boundary condition)
       return -prevVelocitiesY[indexX - 2][indexY];
-    }
-    if (indexY == 1 || indexY == numGridY - 1) {
-      // On the wall
-      return 0.0;
-    } else if (indexY == 0) {
-      // In the wall
-      return -prevVelocitiesY[indexX][2];
-    } else if (indexY == numGridY) {
-      // In the wall
-      return -prevVelocitiesY[indexX][numGridY - 2];
     }
     return prevVelocitiesY[indexX][indexY];
   }
