@@ -380,7 +380,7 @@ class StaggeredGrid {
         return prevVelocitiesX[indexX][numGridY - 2];
       }
       // Non-slip condition(Dirichlet boundary condition)
-      // return -prevVelocitiesX[indexX][numGridY - 2];
+      return -prevVelocitiesX[indexX][numGridY - 2];
     }
     return prevVelocitiesX[indexX][indexY];
   }
