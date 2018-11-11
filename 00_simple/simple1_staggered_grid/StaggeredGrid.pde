@@ -38,14 +38,14 @@ class StaggeredGrid {
         pressures[i][j] = 0.0;
       }
     }
-    isBoundaryConditionFreeSlip = false;
+    isBoundaryConditionFreeSlip = true;
   }
 
   public void update() {
     // Navier Stokes equations
     updteConvection();
     updateDiffusion();
-    // updatePressure();
+    updatePressure();
   }
 
   private void updteConvection() {
@@ -124,7 +124,6 @@ class StaggeredGrid {
   }
 
   private void updatePressure() {
-    // TODO: case of boundary
     // Incompressible
     // SOR (Successive over-relaxation)
     int numSorRepeat = 3;
