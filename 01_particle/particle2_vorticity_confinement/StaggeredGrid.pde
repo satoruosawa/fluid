@@ -486,8 +486,8 @@ class StaggeredGrid {
   }
 
   public void draw() {
-    for (int i = 0; i < numGridX; i++) {
-      for (int j = 0; j < numGridY; j++) {
+    for (int j = 0; j < numGridY; j++) {
+      for (int i = 0; i < numGridX; i++) {
         noStroke();
         fill(0, 0, 200);
         PVector position = convertPositionFromGridIndexF(new PVector(i, j));
