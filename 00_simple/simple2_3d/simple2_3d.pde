@@ -12,7 +12,7 @@ void setup() {
 
 void update() {
   addFlow();
-  // STAGGERED_GRID.update();
+  STAGGERED_GRID.update();
 }
 
 void draw() {
@@ -54,13 +54,8 @@ void mouseWheel(MouseEvent event) {
   CAMERA_Z -= e / 10.0;
 }
 
-
 void addFlow() {
   PVector diffMouse = new PVector(1, 1, 1).mult(1);
   PVector position = new PVector(width / 2, height / 2, width / 2);
   STAGGERED_GRID.addLerpPrevVelocity(position, diffMouse);
-}
-
-void mouseMoved() {
-// TODO: rotate
 }
