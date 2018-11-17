@@ -16,16 +16,16 @@ void update() {
 void draw() {
   update();
   background(255);
-  // STAGGERED_GRID.draw();
+  STAGGERED_GRID.draw();
   // saveFrame("frames/######.tif");
 }
 
 void addFlow() {
-  PVector diffMouse = new PVector(1, 1, 1).mult(10);
+  PVector diffMouse = new PVector(1, 1, 1).mult(1);
   PVector position = new PVector(width / 2, height / 2, width / 2);
   STAGGERED_GRID.addLerpPrevVelocity(position, diffMouse);
 }
 
 void mouseMoved() {
-// rotate
+// TODO: rotate
 }
