@@ -642,7 +642,10 @@ class StaggeredGrid {
           fill(0, 0, 200);
           PVector position = convertPositionFromGridIndexF(new PVector(i, j, k));
           float pressure = prevPressures[i][j][k];
-          // ellipse(position.x, position.y, pressure * 20, pressure * 20);
+          pushMatrix(); {
+            translate(position.x, position.y, position.z);
+            box(3); // TODO:
+          } popMatrix();
           stroke(200, 0, 0);
           strokeWeight(1);
           noFill();
