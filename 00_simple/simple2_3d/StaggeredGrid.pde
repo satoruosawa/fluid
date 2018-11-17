@@ -63,8 +63,8 @@ class StaggeredGrid {
 
   public void update() {
     // Navier Stokes equations
-    updteConvection();
-    // updateDiffusion();
+    // updteConvection();
+    updateDiffusion();
     // updatePressure();
   }
 
@@ -116,48 +116,77 @@ class StaggeredGrid {
       }
     }
   }
-  //
-  // protected void updateDiffusion() {
-  //   // Explicit way
-  //   // h = dx = dy = rectSize
-  //   // Dynamic and kinematic viscosity [nu]
-  //   // surroundRatio = nu * dt / (h * h)
-  //   float surroundRatio = 0.2; // 0 - 0.25
-  //   float centerRatio = 1 - 4 * surroundRatio;
-  //   // or you can define this way
-  //   // float centerRatio = 0.2; // 0 - 1
-  //   // float surroundRatio = (1 - centerRatio) / 4.0;
-  //   for (int j = 1; j < numGridY - 1; j++) {
-  //     for (int i = 1; i < numGridX; i++) {
-  //       float gridIndexXH = i - 0.5;
-  //       int gridIndexY = j;
-  //       float left = getPrevVelocityX(gridIndexXH - 1, gridIndexY);
-  //       float right = getPrevVelocityX(gridIndexXH + 1, gridIndexY);
-  //       float top = getPrevVelocityX(gridIndexXH, gridIndexY - 1);
-  //       float bottom = getPrevVelocityX(gridIndexXH, gridIndexY + 1);
-  //       float total = left + right + top + bottom;
-  //       velocitiesX[i][j] =
-  //         getPrevVelocityX(gridIndexXH, gridIndexY) * centerRatio +
-  //         total * surroundRatio;
-  //     }
-  //   }
-  //   for (int j = 1; j < numGridY; j++) {
-  //     for (int i = 1; i < numGridX - 1; i++) {
-  //       int gridIndexX = i;
-  //       float gridIndexYH = j - 0.5;
-  //       float left = getPrevVelocityY(gridIndexX - 1, gridIndexYH);
-  //       float right = getPrevVelocityY(gridIndexX + 1, gridIndexYH);
-  //       float top = getPrevVelocityY(gridIndexX, gridIndexYH - 1);
-  //       float bottom = getPrevVelocityY(gridIndexX, gridIndexYH + 1);
-  //       float total = left + right + top + bottom;
-  //       velocitiesY[i][j] =
-  //         getPrevVelocityY(gridIndexX, gridIndexYH) * centerRatio +
-  //         total * surroundRatio;
-  //     }
-  //   }
-  //   copyVelocitiesToPrevVelocities();
-  // }
-  //
+
+  protected void updateDiffusion() {
+    // Explicit way
+    // h = dx = dy = rectSize
+    // Dynamic and kinematic viscosity [nu]
+    // surroundRatio = nu * dt / (h * h)
+    float surroundRatio = 0.16; // 0 - (1 / 6.0)
+    float centerRatio = 1 - 6 * surroundRatio;
+    // or you can define this way
+    // float centerRatio = 0.16; // 0 - 1
+    // float surroundRatio = (1 - centerRatio) / 6.0;
+    for (int k = 1; k < numGridZ - 1; k++) {
+      for (int j = 1; j < numGridY - 1; j++) {
+        for (int i = 1; i < numGridX; i++) {
+          float gridIndexXH = i - 0.5;
+          int gridIndexY = j;
+          int gridIndexZ = k;
+          float left = getPrevVelocityX(gridIndexXH - 1, gridIndexY, gridIndexZ);
+          float right = getPrevVelocityX(gridIndexXH + 1, gridIndexY, gridIndexZ);
+          float top = getPrevVelocityX(gridIndexXH, gridIndexY - 1, gridIndexZ);
+          float bottom = getPrevVelocityX(gridIndexXH, gridIndexY + 1, gridIndexZ);
+          float back = getPrevVelocityX(gridIndexXH, gridIndexY, gridIndexZ - 1);
+          float front = getPrevVelocityX(gridIndexXH, gridIndexY, gridIndexZ + 1);
+          float total = left + right + top + bottom + back + front;
+          velocitiesX[i][j][k] =
+            getPrevVelocityX(gridIndexXH, gridIndexY, gridIndexZ) * centerRatio +
+            total * surroundRatio;
+        }
+      }
+    }
+    for (int k = 1; k < numGridZ - 1; k++) {
+      for (int j = 1; j < numGridY; j++) {
+        for (int i = 1; i < numGridX - 1; i++) {
+          int gridIndexX = i;
+          float gridIndexYH = j - 0.5;
+          int gridIndexZ = k;
+          float left = getPrevVelocityY(gridIndexX - 1, gridIndexYH, gridIndexZ);
+          float right = getPrevVelocityY(gridIndexX + 1, gridIndexYH, gridIndexZ);
+          float top = getPrevVelocityY(gridIndexX, gridIndexYH - 1, gridIndexZ);
+          float bottom = getPrevVelocityY(gridIndexX, gridIndexYH + 1, gridIndexZ);
+          float back = getPrevVelocityY(gridIndexX, gridIndexYH, gridIndexZ - 1);
+          float front = getPrevVelocityY(gridIndexX, gridIndexYH, gridIndexZ + 1);
+          float total = left + right + top + bottom + back + front;
+          velocitiesY[i][j][k] =
+            getPrevVelocityY(gridIndexX, gridIndexYH, gridIndexZ) * centerRatio +
+            total * surroundRatio;
+        }
+      }
+    }
+    for (int k = 1; k < numGridZ; k++) {
+      for (int j = 1; j < numGridY - 1; j++) {
+        for (int i = 1; i < numGridX - 1; i++) {
+          int gridIndexX = i;
+          int gridIndexY = j;
+          float gridIndexZH = k - 0.5;
+          float left = getPrevVelocityZ(gridIndexX - 1, gridIndexY, gridIndexZH);
+          float right = getPrevVelocityZ(gridIndexX + 1, gridIndexY, gridIndexZH);
+          float top = getPrevVelocityZ(gridIndexX, gridIndexY - 1, gridIndexZH);
+          float bottom = getPrevVelocityZ(gridIndexX, gridIndexY + 1, gridIndexZH);
+          float back = getPrevVelocityZ(gridIndexX, gridIndexY, gridIndexZH - 1);
+          float front = getPrevVelocityZ(gridIndexX, gridIndexY, gridIndexZH + 1);
+          float total = left + right + top + bottom + back + front;
+          velocitiesZ[i][j][k] =
+            getPrevVelocityZ(gridIndexX, gridIndexY, gridIndexZH) * centerRatio +
+            total * surroundRatio;
+        }
+      }
+    }
+    copyVelocitiesToPrevVelocities();
+  }
+
   // protected void updatePressure() {
   //   // Incompressible
   //   // SOR (Successive over-relaxation)
