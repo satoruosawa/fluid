@@ -1,6 +1,7 @@
 StaggeredGrid STAGGERED_GRID;
 int GRID_SIZE = 54;
 float CAMERA_Z = 0.0;
+boolean IS_ROTATE_MODE = false;
 
 void setup() {
   size(1080, 1080, P3D);
@@ -11,7 +12,6 @@ void setup() {
 }
 
 void update() {
-  addFlow();
   STAGGERED_GRID.update();
 }
 
@@ -40,12 +40,14 @@ void cameraControl() {
     camera();
     translate(0, 0, CAMERA_Z);
   } endCamera();
-  translate(width / 2, height / 2, width / 2);
-  float mappedMouseX = map(mouseX, 0, width, -1.0, 1.0);
-  float mappedMouseY = map(mouseY, 0, width, -1.0, 1.0);
-  rotateX(-mappedMouseY * PI);
-  rotateY(mappedMouseX * PI);
-  translate(-width / 2, -height / 2, -width / 2);
+  if (IS_ROTATE_MODE) {
+    translate(width / 2, height / 2, width / 2);
+    float mappedMouseX = map(mouseX, 0, width, -1.0, 1.0);
+    float mappedMouseY = map(mouseY, 0, width, -1.0, 1.0);
+    rotateX(-mappedMouseY * PI);
+    rotateY(mappedMouseX * PI);
+    translate(-width / 2, -height / 2, -width / 2);
+  }
 }
 
 void mouseWheel(MouseEvent event) {
@@ -54,8 +56,26 @@ void mouseWheel(MouseEvent event) {
   CAMERA_Z -= e / 10.0;
 }
 
-void addFlow() {
-  PVector diffMouse = new PVector(1, 1, 1).mult(1);
-  PVector position = new PVector(width / 2, height / 2, width / 2);
-  STAGGERED_GRID.addLerpPrevVelocity(position, diffMouse);
+void mouseMoved() {
+  if (!IS_ROTATE_MODE) {
+    PVector diffMouse = new PVector(mouseX - pmouseX, mouseY - pmouseY, 0.0).mult(10);
+    PVector position = new PVector(mouseX, mouseY, width / 2.0);
+    STAGGERED_GRID.addLerpPrevVelocity(position, diffMouse);
+  }
+}
+
+void keyPressed() {
+	if (key == CODED) {
+		if (keyCode == SHIFT) {
+      IS_ROTATE_MODE = true;
+		}
+	}
+}
+
+void keyReleased() {
+	if (key == CODED) {
+		if (keyCode == SHIFT) {
+      IS_ROTATE_MODE = false;
+		}
+	}
 }

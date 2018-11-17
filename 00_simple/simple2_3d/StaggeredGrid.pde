@@ -63,7 +63,7 @@ class StaggeredGrid {
 
   public void update() {
     // Navier Stokes equations
-    // updteConvection();
+    updteConvection();
     updateDiffusion();
     // updatePressure();
   }
