@@ -35,6 +35,12 @@ class Particle {
     if (life < 0) {
       return true;
     }
+    // CHECK! This is adjust for fluid 3d.
+    if (position.x < GRID_SIZE || position.x > width - GRID_SIZE ||
+      position.y < GRID_SIZE || position.y > height - GRID_SIZE ||
+      position.z < GRID_SIZE || position.z > width - GRID_SIZE) {
+        return true;
+      }
     return false;
   }
 
