@@ -816,7 +816,7 @@ class StaggeredGrid {
           float pressure = prevPressures[i][j][k];
           pushMatrix(); {
             translate(position.x, position.y, position.z);
-            // box(3); // TODO:
+            box(pressure * 20, pressure * 20, pressure * 20);
           } popMatrix();
           stroke(200, 0, 0);
           strokeWeight(1);

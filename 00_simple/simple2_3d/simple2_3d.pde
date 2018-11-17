@@ -58,7 +58,7 @@ void mouseWheel(MouseEvent event) {
 
 void mouseMoved() {
   if (!IS_ROTATE_MODE) {
-    PVector diffMouse = new PVector(mouseX - pmouseX, mouseY - pmouseY, 0.0).mult(10);
+    PVector diffMouse = new PVector(mouseX - pmouseX, mouseY - pmouseY, 0.0).mult(100);
     PVector position = new PVector(mouseX, mouseY, width / 2.0);
     STAGGERED_GRID.addLerpPrevVelocity(position, diffMouse);
   }
