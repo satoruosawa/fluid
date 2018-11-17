@@ -65,7 +65,7 @@ class StaggeredGrid {
     // Navier Stokes equations
     updteConvection();
     updateDiffusion();
-    // updatePressure();
+    updatePressure();
   }
 
   protected void updteConvection() {
@@ -187,64 +187,90 @@ class StaggeredGrid {
     copyVelocitiesToPrevVelocities();
   }
 
-  // protected void updatePressure() {
-  //   // Incompressible
-  //   // SOR (Successive over-relaxation)
-  //   int numSorRepeat = 3;
-  //   float sorRelaxationFactor = 1.0; // should more than 1
-  //   // h = dx = dy = rectSize
-  //   // Density [rho]
-  //   // poissonCoef = h * rho / dt
-  //   float poissonCoef = 0.1;
-  //   for (int k = 0; k < numSorRepeat; k++) {
-  //     for (int j = 0; j < numGridY; j++) {
-  //       for (int i = 0; i < numGridX; i++) {
-  //         pressures[i][j] =
-  //           (1 - sorRelaxationFactor) * getPrevPressure(i, j) +
-  //           sorRelaxationFactor * calculatePoissonsEquation(i, j, poissonCoef);
-  //       }
-  //     }
-  //     for (int j = 0; j < numGridY; j++) {
-  //       for (int i = 0; i < numGridX; i++) {
-  //         prevPressures[i][j] = pressures[i][j];
-  //       }
-  //     }
-  //   }
-  //   for (int j = 0; j < numGridY; j++) {
-  //     for (int i = 0; i < numGridX + 1; i++) {
-  //       float leftPressure = getPrevPressure(i - 1, j);
-  //       float rightPressure = getPrevPressure(i + 1, j);
-  //       velocitiesX[i][j] = prevVelocitiesX[i][j] -
-  //         (rightPressure - leftPressure) / poissonCoef;
-  //     }
-  //   }
-  //   for (int j = 0; j < numGridY + 1; j++) {
-  //     for (int i = 0; i < numGridX; i++) {
-  //       float topPressure = getPrevPressure(i, j - 1);
-  //       float bottomPressure = getPrevPressure(i, j + 1);
-  //       velocitiesY[i][j] = prevVelocitiesY[i][j] -
-  //         (bottomPressure - topPressure) / poissonCoef;
-  //     }
-  //   }
-  //   copyVelocitiesToPrevVelocities();
-  // }
-  //
-  // protected float calculatePoissonsEquation(
-  //   int gridIndexX, int gridIndexY, float poissonCoef) {
-  //   float leftVelocityX = getPrevVelocityX(gridIndexX - 0.5, gridIndexY);
-  //   float rightVelocityX = getPrevVelocityX(gridIndexX + 0.5, gridIndexY);
-  //   float topVelocityY = getPrevVelocityY(gridIndexX, gridIndexY - 0.5);
-  //   float bottomVelocityY = getPrevVelocityY(gridIndexX, gridIndexY + 0.5);
-  //   float divVelocity = poissonCoef *
-  //     (rightVelocityX - leftVelocityX + bottomVelocityY - topVelocityY);
-  //   float leftPressure = getPrevPressure(gridIndexX - 1, gridIndexY);
-  //   float rightPressure = getPrevPressure(gridIndexX + 1, gridIndexY);
-  //   float topPressure = getPrevPressure(gridIndexX, gridIndexY - 1);
-  //   float bottomPressure = getPrevPressure(gridIndexX, gridIndexY + 1);
-  //   return (leftPressure + rightPressure + topPressure + bottomPressure -
-  //     divVelocity) / 4.0;
-  // }
-  //
+  protected void updatePressure() {
+    // Incompressible
+    // SOR (Successive over-relaxation)
+    int numSorRepeat = 3;
+    float sorRelaxationFactor = 1.0; // should more than 1
+    // h = dx = dy = rectSize
+    // Density [rho]
+    // poissonCoef = h * rho / dt
+    float poissonCoef = 0.01;
+    for (int l = 0; l < numSorRepeat; l++) {
+      for (int k = 0; k < numGridZ; k++) {
+        for (int j = 0; j < numGridY; j++) {
+          for (int i = 0; i < numGridX; i++) {
+            pressures[i][j][k] =
+              (1 - sorRelaxationFactor) * getPrevPressure(i, j, k) +
+              sorRelaxationFactor * calculatePoissonsEquation(i, j, k, poissonCoef);
+          }
+        }
+      }
+      for (int k = 0; k < numGridZ; k++) {
+        for (int j = 0; j < numGridY; j++) {
+          for (int i = 0; i < numGridX; i++) {
+            prevPressures[i][j][k] = pressures[i][j][k];
+          }
+        }
+      }
+    }
+    for (int k = 0; k < numGridZ; k++) {
+      for (int j = 0; j < numGridY; j++) {
+        for (int i = 0; i < numGridX + 1; i++) {
+          float leftPressure = getPrevPressure(i - 1, j, k);
+          float rightPressure = getPrevPressure(i + 1, j, k);
+          velocitiesX[i][j][k] = prevVelocitiesX[i][j][k] -
+            (rightPressure - leftPressure) / poissonCoef;
+        }
+      }
+    }
+    for (int k = 0; k < numGridZ; k++) {
+      for (int j = 0; j < numGridY + 1; j++) {
+        for (int i = 0; i < numGridX; i++) {
+          float topPressure = getPrevPressure(i, j - 1, k);
+          float bottomPressure = getPrevPressure(i, j + 1, k);
+          velocitiesY[i][j][k] = prevVelocitiesY[i][j][k] -
+            (bottomPressure - topPressure) / poissonCoef;
+        }
+      }
+    }
+    for (int k = 0; k < numGridZ + 1; k++) {
+      for (int j = 0; j < numGridY; j++) {
+        for (int i = 0; i < numGridX; i++) {
+          float backPressure = getPrevPressure(i, j, k - 1);
+          float frontPressure = getPrevPressure(i, j, k + 1);
+          velocitiesZ[i][j][k] = prevVelocitiesZ[i][j][k] -
+            (frontPressure - backPressure) / poissonCoef;
+        }
+      }
+    }
+    copyVelocitiesToPrevVelocities();
+  }
+
+  protected float calculatePoissonsEquation(
+    int gridIndexX, int gridIndexY, int gridIndexZ, float poissonCoef) {
+    float leftVelocityX = getPrevVelocityX(gridIndexX - 0.5, gridIndexY, gridIndexZ);
+    float rightVelocityX = getPrevVelocityX(gridIndexX + 0.5, gridIndexY, gridIndexZ);
+    float topVelocityY = getPrevVelocityY(gridIndexX, gridIndexY - 0.5, gridIndexZ);
+    float bottomVelocityY = getPrevVelocityY(gridIndexX, gridIndexY + 0.5, gridIndexZ);
+    float backVelocityZ = getPrevVelocityZ(gridIndexX, gridIndexY, gridIndexZ - 0.5);
+    float frontVelocityZ = getPrevVelocityZ(gridIndexX, gridIndexY, gridIndexZ + 0.5);
+    float divVelocity = poissonCoef *
+      (rightVelocityX - leftVelocityX +
+        bottomVelocityY - topVelocityY +
+        frontVelocityZ - backVelocityZ);
+    float leftPressure = getPrevPressure(gridIndexX - 1, gridIndexY, gridIndexZ);
+    float rightPressure = getPrevPressure(gridIndexX + 1, gridIndexY, gridIndexZ);
+    float topPressure = getPrevPressure(gridIndexX, gridIndexY - 1, gridIndexZ);
+    float bottomPressure = getPrevPressure(gridIndexX, gridIndexY + 1, gridIndexZ);
+    float backPressure = getPrevPressure(gridIndexX, gridIndexY, gridIndexZ - 1);
+    float frontPressure = getPrevPressure(gridIndexX, gridIndexY, gridIndexZ + 1);
+    return (leftPressure + rightPressure +
+      topPressure + bottomPressure +
+      backPressure + frontPressure -
+      divVelocity) / 6.0;
+  }
+
   protected void copyVelocitiesToPrevVelocities() {
     for (int k = 0; k < numGridZ; k++) {
       for (int j = 0; j < numGridY; j++) {
@@ -268,15 +294,17 @@ class StaggeredGrid {
       }
     }
   }
-  //
-  // protected float getPrevPressure(int gridIndexX, int gridIndexY) {
-  //   if (gridIndexX < 0 || gridIndexX >= numGridX ||
-  //     gridIndexY < 0 || gridIndexY >= numGridY) {
-  //     return 0.0;
-  //   }
-  //   return prevPressures[gridIndexX][gridIndexY];
-  // }
-  //
+
+  protected float getPrevPressure(
+    int gridIndexX, int gridIndexY, int gridIndexZ) {
+    if (gridIndexX < 0 || gridIndexX >= numGridX ||
+      gridIndexY < 0 || gridIndexY >= numGridY ||
+      gridIndexZ < 0 || gridIndexZ >= numGridZ) {
+      return 0.0;
+    }
+    return prevPressures[gridIndexX][gridIndexY][gridIndexZ];
+  }
+
   public void addLerpPrevVelocity(PVector position, PVector velocity) {
     PVector gridIndexF = convertGridIndexFFromPosition(position.copy());
     addLerpPrevVelocityX(gridIndexF, velocity.x);
