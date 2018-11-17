@@ -1,25 +1,31 @@
 StaggeredGrid STAGGERED_GRID;
-int GRID_WIDTH = 10;
+int GRID_SIZE = 54;
 
 void setup() {
-  size(1080, 1080);
+  size(1080, 1080, P3D);
+  frameRate(60);
   STAGGERED_GRID = new StaggeredGrid(
-    GRID_WIDTH, width / GRID_WIDTH, height / GRID_WIDTH);
+    GRID_SIZE, width / GRID_SIZE, height / GRID_SIZE, width / GRID_SIZE);
 }
 
 void update() {
-  STAGGERED_GRID.update();
+  addFlow();
+  // STAGGERED_GRID.update();
 }
 
 void draw() {
   update();
   background(255);
-  STAGGERED_GRID.draw();
+  // STAGGERED_GRID.draw();
   // saveFrame("frames/######.tif");
 }
 
-void mouseMoved() {
-  PVector diffMouse = new PVector(mouseX - pmouseX, mouseY - pmouseY).mult(10);
-  PVector position = new PVector(mouseX, mouseY);
+void addFlow() {
+  PVector diffMouse = new PVector(1, 1, 1).mult(10);
+  PVector position = new PVector(width / 2, height / 2, width / 2);
   STAGGERED_GRID.addLerpPrevVelocity(position, diffMouse);
+}
+
+void mouseMoved() {
+// rotate
 }
