@@ -414,7 +414,7 @@ class StaggeredGrid {
         getPrevVelocityY(gridIndexX, gridIndexY + 0.5, gridIndexZ)
       ) / 2.0;
     float prevVelocityZ = (
-        getPrevVelocityZ(gridIndexX, gridIndexZ, gridIndexZ - 0.5) +
+        getPrevVelocityZ(gridIndexX, gridIndexY, gridIndexZ - 0.5) +
         getPrevVelocityZ(gridIndexX, gridIndexY, gridIndexZ + 0.5)
       ) / 2.0;
     return new PVector(prevVelocityX, prevVelocityY, prevVelocityZ);
